@@ -1,7 +1,6 @@
 package com.example.g9ems
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
@@ -14,7 +13,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.*
+import androidx.core.app.ActivityCompat
+import android.content.pm.PackageManager
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.core.content.ContextCompat
 import com.example.g9ems.data.local.DatabaseManager
 import com.example.g9ems.data.models.FormSession
 import com.example.g9ems.ui.screens.PushToTalkScreen
@@ -33,9 +38,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+        requestMicrophonePermission()
 
         voiceRecognizer = VoiceRecognizer(this)
+
+
 
         setContent {
             G9EMSTheme {
@@ -79,6 +88,31 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         databaseManager.closeDatabase()
         voiceRecognizer.destroy()
+    }
+
+    private fun requestMicrophonePermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission already granted
+                Log.d("EMS-PERM", "✅ Microphone permission granted")
+            }
+            else -> {
+                // Request permission
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.RECORD_AUDIO),
+                    PERMISSION_REQUEST_CODE
+                )
+            }
+        }
+    }
+
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1001
     }
 }
 
@@ -186,6 +220,7 @@ fun DatabaseTestScreen(
     }
 
     // Voice commands for database operations
+
     LaunchedEffect(Unit) {
         voiceRecognizer.events.collect { e ->
             if (e is VoiceEvent.Final) {
@@ -451,4 +486,5 @@ fun DatabaseTestScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+
 }

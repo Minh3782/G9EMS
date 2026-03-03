@@ -3,6 +3,7 @@
 # Build tools
 agp = "8.7.3"
 kotlin = "2.0.21"
+appcompat = "1.6.1"
 
 # Android SDK
 compileSdk = "36"
@@ -30,6 +31,8 @@ espressoCore = "3.6.1"
 
 
 [libraries]
+
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

@@ -10,6 +10,7 @@ class FormRepository {
     // Later: connect MongoDB via your Node API
     suspend fun saveSession(session: FormSession) {
         delay(150) // simulate
+        android.util.Log.d("EMS-REPO", "Saving session: $session")
     }
 
     fun createBlankSession(formType: FormType): FormSession {
@@ -32,6 +33,8 @@ class FormRepository {
             )
             FormType.FORM3_PATIENT_REPORT -> listOf(
                 FormField("patient_name", "Patient Name", required = true),
+                FormField("patient_age", "Patient Age"),
+                FormField("patient_gender", "Patient Gender"),
                 FormField("dob", "Date of Birth"),
                 FormField("chief_complaint", "Chief Complaint", required = true),
                 FormField("vitals", "Vitals"),

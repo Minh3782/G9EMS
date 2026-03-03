@@ -2,20 +2,48 @@ package com.example.g9ems.data
 
 // ShiftReport.kt
 data class ShiftReport(
-    val reportId: String = "",
-    val date: String = "", // 2023-01-01
-    val time: String = "", // 09:00
-    val patientName: String = "",
-    val patientId: String = "", // 1234567890
-    val patientAge: Int = 0,
-    val patientGender: String = "", // Male/Female
-    val patientType: String = "", // Emergency/Non-Emergency
-    val patientCondition: String = "", // Critical/Stable/etc
-    val patientStatus: String = "", // Hospitalised/Released/etc
-    val patientLocation: String = "", // London/New York/etc
-    val patientDetails: String = "", // [Details]
-    val paramedicId: String = "", // User ID
-    val stationId: String = "",
-    val createdAt: Long = System.currentTimeMillis(),
-    val documentType: String = "shift_report"
+    val id: String = "",
+
+    val timestamp: Long = System.currentTimeMillis(),
+
+    val patientName: String? = null,
+    val patientId: String? = null,
+    val patientAge: Int? = null,
+    val patientGender: Gender? = null,
+    val patientType: PatientType? = null,
+    val patientCondition: PatientCondition? = null,
+    val patientStatus: PatientOutcome? = null,
+    val patientLocation: String? = null,
+    val patientDetails: String? = null,
+
+    val paramedicId: String,
+    val stationId: String? = null,
+
+    val documentType: String = "shift_report",
+    val documentVersion: Int = 1
 )
+
+enum class Gender {
+    MALE,
+    FEMALE,
+    OTHER,
+    UNKNOWN
+}
+
+enum class PatientType {
+    EMERGENCY,
+    NON_EMERGENCY
+}
+
+enum class PatientCondition {
+    CRITICAL,
+    SERIOUS,
+    STABLE
+}
+
+enum class PatientOutcome {
+    HOSPITALIZED,
+    RELEASED,
+    REFUSED_CARE,
+    DECEASED
+}

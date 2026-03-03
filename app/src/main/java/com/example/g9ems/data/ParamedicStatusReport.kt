@@ -2,30 +2,43 @@ package com.example.g9ems.data
 
 // ParamedicStatusReport.kt
 data class ParamedicStatusReport(
-    val reportId: String = "",
-    val paramedicId: String = "", // User ID
-    val reportDate: String = "", // 20260225 (revision date)
-    val teamId: String = "", // For team-specific reports
+    val id: String = "",
+    val paramedicId: String,
+    val teamId: String? = null,
 
-    // Checklist Items
-    val acrStatus: ChecklistItem = ChecklistItem(), // ACR Completion
-    val aceResponseStatus: ChecklistItem = ChecklistItem(), // ACE Response
-    val driversLicenseStatus: ChecklistItem = ChecklistItem(), // Drivers License
-    val vaccinationsStatus: ChecklistItem = ChecklistItem(), // Vaccinations
-    val educationStatus: ChecklistItem = ChecklistItem(), // Continuous Education
-    val uniformStatus: ChecklistItem = ChecklistItem(), // Uniform credits
-    val criminalRecordStatus: ChecklistItem = ChecklistItem(), // CRC
-    val acpStatus: ChecklistItem = ChecklistItem(), // ACP Status
-    val vacationStatus: ChecklistItem = ChecklistItem(), // Vacation
-    val missedMealsStatus: ChecklistItem = ChecklistItem(), // Missed Meals
-    val overtimeStatus: ChecklistItem = ChecklistItem(), // Overtime Requests
+    val reportDate: Long = System.currentTimeMillis(),
+
+    val checklist: Map<ChecklistType, ChecklistItem> = emptyMap(),
 
     val createdAt: Long = System.currentTimeMillis(),
-    val documentType: String = "paramedic_status_report"
+    val updatedAt: Long = System.currentTimeMillis(),
+
+    val documentType: String = "paramedic_status_report",
+    val documentVersion: Int = 1
 )
 
 data class ChecklistItem(
-    val status: String = "GOOD", // GOOD/BAD
+    val status: ChecklistStatus = ChecklistStatus.GOOD,
     val issueCount: Int = 0,
-    val notes: String = ""
+    val notes: String? = null
 )
+
+enum class ChecklistStatus {
+    GOOD,
+    WARNING,
+    CRITICAL
+}
+
+enum class ChecklistType {
+    ACR,
+    ACE_RESPONSE,
+    DRIVERS_LICENSE,
+    VACCINATIONS,
+    EDUCATION,
+    UNIFORM,
+    CRC,
+    ACP_STATUS,
+    VACATION,
+    MISSED_MEALS,
+    OVERTIME
+}

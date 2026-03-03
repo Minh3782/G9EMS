@@ -2,14 +2,17 @@ package com.example.g9ems.voice
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.util.Locale
+import android.Manifest
 
 class VoiceRecognizer(private val context: Context) {
 
@@ -20,6 +23,15 @@ class VoiceRecognizer(private val context: Context) {
     fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
             _events.trySend(VoiceEvent.Error("Speech recognition not available on this device"))
+            return
+        }
+
+        val permissionCheck = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        )
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            _events.trySend(VoiceEvent.Error("Microphone permission required"))
             return
         }
 

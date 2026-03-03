@@ -16,12 +16,16 @@ class LlmClient(
         return LlmSuggestion(
             assistantReply = "Got it. I heard: \"$transcript\". Tell me the incident location?",
             // Later: return structured field updates from your LLM
-            fieldUpdates = emptyMap()
+            fieldUpdates = mapOf( //testing
+                "patient_name" to "John",
+                "patient_Age" to 45,
+                "patientGender" to "MALE"
+            )
         )
     }
 }
 
 data class LlmSuggestion(
     val assistantReply: String,
-    val fieldUpdates: Map<String, String>
+    val fieldUpdates: Map<String, Any?>
 )
