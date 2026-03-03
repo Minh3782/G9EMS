@@ -18,7 +18,8 @@ import com.example.g9ems.viewmodel.FormViewModel
 fun PushToTalkScreen(
     vm: FormViewModel,
     onStartListening: () -> Unit,
-    onStopListening: () -> Unit
+    onStopListening: () -> Unit,
+    onNavigateToDatabase: () -> Unit
 ) {
     val messages by vm.messages.collectAsState()
     val partial by vm.partialTranscript.collectAsState()
@@ -27,10 +28,20 @@ fun PushToTalkScreen(
 
     Column(Modifier.fillMaxSize().padding(12.dp)) {
 
-        Text(
-            text = "Form: ${session.formType}",
-            style = MaterialTheme.typography.titleMedium
-        )
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Form: ${session.formType}",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            TextButton(onClick = onNavigateToDatabase) {
+                Text("Database")
+            }
+        }
 
         Spacer(Modifier.height(8.dp))
 

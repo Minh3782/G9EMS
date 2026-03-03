@@ -11,16 +11,18 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://mobile.maven.couchbase.com/maven2/dev/")
+        }
     }
 }
 
-rootProject.name = "G9EMS"
+rootProject.name = "My Application"
 include(":app")
+include(":app")
+ 
