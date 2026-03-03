@@ -3,45 +3,52 @@ package com.example.g9ems
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.g9ems.ui.screens.PushToTalkScreen
 import com.example.g9ems.ui.theme.G9EMSTheme
+import com.example.g9ems.voice.VoiceEvent
+import com.example.g9ems.voice.VoiceRecognizer
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var voice: VoiceRecognizer
+    private val scope = MainScope()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        voice = VoiceRecognizer(this)
+
         setContent {
             G9EMSTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val vm = viewModel<com.example.g9ems.viewmodel.FormViewModel>()
+
+                // Collect voice events and push into VM
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    voice.events.collect { e ->
+                        when (e) {
+                            is VoiceEvent.Listening -> vm.setListening(e.isListening)
+                            is VoiceEvent.Partial -> vm.setPartial(e.text)
+                            is VoiceEvent.Final -> vm.onFinalTranscript(e.text)
+                            is VoiceEvent.Error -> vm.onFinalTranscript("Voice error: ${e.message}")
+                        }
+                    }
                 }
+
+                PushToTalkScreen(
+                    vm = vm,
+                    onStartListening = { voice.startListening() },
+                    onStopListening = { voice.stopListening() }
+                )
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    G9EMSTheme {
-        Greeting("Android")
+    override fun onDestroy() {
+        super.onDestroy()
+        voice.destroy()
+        scope.cancel()
     }
 }
