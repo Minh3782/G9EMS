@@ -16,10 +16,20 @@ class FormRepository {
     fun createBlankSession(formType: FormType): FormSession {
         val fields = when (formType) {
             FormType.FORM2_TEDDY -> listOf(
-                FormField("teddy_id", "Teddy ID", required = true),
-                FormField("patient_name", "Patient Name"),
-                FormField("handoff_to", "Hand-off To"),
+                FormField("primaryMedicFirstName", "Medic First Name", required = true),
+                FormField("primaryMedicLastName", "Medic Last Name", required = true),
+                FormField("primaryMedicNumber", "Medic ID", required = true),
+                FormField("recipientAge", "Recipient Age", type = "number"),
+                FormField("recipientGender", "Recipient Gender", type = "enum",
+                    allowedValues = listOf("MALE", "FEMALE", "OTHER")),
+                FormField("recipientType", "Recipient Type", type = "enum",
+                    allowedValues = listOf("PEDIATRIC_PATIENT", "TRAUMA_PATIENT", "COMMUNITY_EVENT", "OTHER")),
+                FormField("secondaryMedicFirstName", "Second Medic First Name"),
+                FormField("secondaryMedicLastName", "Second Medic Last Name"),
+                FormField("secondaryMedicNumber", "Second Medic ID"),
+                FormField("formNumber", "Form Number"),
             )
+
             FormType.FORM4_STATUS -> listOf(
                 FormField("unit_id", "Unit ID", required = true),
                 FormField("status", "Status (Available/Busy/Out of Service)", required = true),

@@ -1,27 +1,45 @@
 package com.example.g9ems.ai
 
+import com.example.g9ems.BuildConfig
+import com.example.g9ems.api.OpenRouterClient
 import com.example.g9ems.data.models.FormSession
+import com.example.g9ems.data.models.FormType
 import kotlinx.coroutines.delay
 
-class LlmClient(
-    private val apiBaseUrl: String = "YOUR_NODE_API_BASE_URL_HERE",
-    private val apiToken: String = "YOUR_API_TOKEN_HERE"
-) {
-    // Later: call your Node backend which calls the paid LLM
+class LlmClient {
+
+    private val openRouterClient = OpenRouterClient(BuildConfig.OPENROUTER_API_KEY)
+
     suspend fun suggestFieldUpdates(
         transcript: String,
         session: FormSession
     ): LlmSuggestion {
-        delay(300) // simulate
-        return LlmSuggestion(
-            assistantReply = "Got it. I heard: \"$transcript\". Tell me the incident location?",
-            // Later: return structured field updates from your LLM
-            fieldUpdates = mapOf( //testing
-                "patient_name" to "John",
-                "patient_Age" to 45,
-                "patientGender" to "MALE"
-            )
-        )
+
+        // Use real API if key exists
+        if (BuildConfig.OPENROUTER_API_KEY.isNotEmpty()) {
+            return openRouterClient.suggestFieldUpdates(transcript, session)
+        }
+
+        // Fallback to test data if no API key
+        delay(300)
+        return when (session.formType) {
+            FormType.FORM2_TEDDY -> {
+                LlmSuggestion(
+                    assistantReply = "I've filled the Teddy Bear form based on what you said.",
+                    fieldUpdates = mapOf(
+                        "recipientAge" to "5",
+                        "recipientGender" to "Female",
+                        "recipientType" to "Patient"
+                    )
+                )
+            }
+            else -> {
+                LlmSuggestion(
+                    assistantReply = "I heard: \"$transcript\"",
+                    fieldUpdates = emptyMap()
+                )
+            }
+        }
     }
 }
 

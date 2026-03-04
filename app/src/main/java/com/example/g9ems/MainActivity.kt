@@ -10,19 +10,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.*
 import androidx.compose.material.icons.filled.*
 import androidx.core.app.ActivityCompat
 import android.content.pm.PackageManager
-import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import com.example.g9ems.data.local.DatabaseManager
 import com.example.g9ems.data.models.FormSession
-import com.example.g9ems.ui.screens.PushToTalkScreen
+import com.example.g9ems.ui.screens.MainMenuScreen
+import com.example.g9ems.ui.screens.TeddyBearFormScreen
 import com.example.g9ems.ui.theme.G9EMSTheme
 import com.example.g9ems.voice.VoiceEvent
 import com.example.g9ems.voice.VoiceRecognizer
@@ -63,57 +61,72 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // Choose which screen to show
-                var showDatabaseTest by remember { mutableStateOf(false) }
+                var currentScreen by remember { mutableStateOf("MAIN_MENU") } // "MAIN_MENU", "TEDDY_BEAR", "DATABASE_TEST"
 
-                if (showDatabaseTest) {
-                    DatabaseTestScreen(
-                        onNavigateBack = { showDatabaseTest = false },
-                        databaseManager = databaseManager,
-                        formViewModel = formViewModel,  // Pass the ViewModel
-                        voiceRecognizer = voiceRecognizer
-                    )
-                } else {
-                    PushToTalkScreen(
-                        vm = formViewModel,
-                        onStartListening = { voiceRecognizer.startListening() },
-                        onStopListening = { voiceRecognizer.stopListening() },
-                        onNavigateToDatabase = { showDatabaseTest = true }
+                when (currentScreen) {
+                    "MAIN_MENU" -> {
+                        MainMenuScreen(
+                            onSelectTeddyBear = { currentScreen = "TEDDY_BEAR" },
+                            onSelectDatabase = { currentScreen = "DATABASE_TEST" }
+                        )
+                    }
+
+                    "TEDDY_BEAR" -> {
+                        TeddyBearFormScreen(
+                            vm = formViewModel,
+                            onBackPressed = {
+                                currentScreen = "MAIN_MENU"
+                            },
+                            onStartListening = { voiceRecognizer.startListening() },  // Add this
+                            onStopListening = { voiceRecognizer.stopListening() }     // Add this
+                        )
+                    }
+
+                    "DATABASE_TEST" -> {
+                        DatabaseTestScreen(
+                            onNavigateBack = { currentScreen = "MAIN_MENU" },
+                            databaseManager = databaseManager,
+                            formViewModel = formViewModel,
+                            voiceRecognizer = voiceRecognizer
+                        )
+                    }
+                }
+            }
+        }
+
+    }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            databaseManager.closeDatabase()
+            voiceRecognizer.destroy()
+        }
+
+        private fun requestMicrophonePermission() {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Permission already granted
+                    Log.d("EMS-PERM", "✅ Microphone permission granted")
+                }
+
+                else -> {
+                    // Request permission
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.RECORD_AUDIO),
+                        PERMISSION_REQUEST_CODE
                     )
                 }
             }
         }
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        databaseManager.closeDatabase()
-        voiceRecognizer.destroy()
-    }
 
-    private fun requestMicrophonePermission() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission already granted
-                Log.d("EMS-PERM", "✅ Microphone permission granted")
-            }
-            else -> {
-                // Request permission
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.RECORD_AUDIO),
-                    PERMISSION_REQUEST_CODE
-                )
-            }
+        companion object {
+            private const val PERMISSION_REQUEST_CODE = 1001
         }
-    }
-
-
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 1001
-    }
 }
 
 @Composable
@@ -186,9 +199,14 @@ fun DatabaseTestScreen(
             val query = com.couchbase.lite.QueryBuilder
                 .select(com.couchbase.lite.SelectResult.all())
                 .from(com.couchbase.lite.DataSource.database(db))
-                .where(com.couchbase.lite.Expression.property("type").equalTo(com.couchbase.lite.Expression.string("form_session")))
-                .orderBy(com.couchbase.lite.Ordering.expression(
-                    com.couchbase.lite.Expression.property("timestamp")).descending()
+                .where(
+                    com.couchbase.lite.Expression.property("type")
+                        .equalTo(com.couchbase.lite.Expression.string("form_session"))
+                )
+                .orderBy(
+                    com.couchbase.lite.Ordering.expression(
+                        com.couchbase.lite.Expression.property("timestamp")
+                    ).descending()
                 )
 
             val results = query.execute()
@@ -230,21 +248,25 @@ fun DatabaseTestScreen(
                             performOpenDatabase()
                         }
                     }
+
                     "save patient", "save session", "save form" -> {
                         if (isDatabaseOpen) {
                             performSaveSession(session)
                         }
                     }
+
                     "query patients", "show patients", "show sessions" -> {
                         if (isDatabaseOpen) {
                             performQueryDocuments()
                         }
                     }
+
                     "close database", "disconnect" -> {
                         if (isDatabaseOpen) {
                             performCloseDatabase()
                         }
                     }
+
                     "go back", "back to form" -> onNavigateBack()
                 }
             }
@@ -486,5 +508,4 @@ fun DatabaseTestScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
-
 }

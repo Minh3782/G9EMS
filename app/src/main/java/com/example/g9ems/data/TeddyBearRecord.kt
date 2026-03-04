@@ -7,17 +7,20 @@ data class TeddyBearRecord(
 
     val distributionTimestamp: Long = System.currentTimeMillis(),
 
-    val primaryMedicId: String,
-    val secondaryMedicId: String? = null,
+    val primaryMedicFirstName: String = "",
+    val primaryMedicLastName: String = "",
+    val primaryMedicNumber: String = "",
+    val secondaryMedicFirstName: String = "",
+    val secondaryMedicLastName: String = "",
+    val secondaryMedicNumber: String = "",
 
     val recipientAge: Int? = null,
     val recipientGender: Gender? = null,
     val recipientType: RecipientType? = null,
 
-    val createdBy: String,
+    val createdBy: String = "",
 
     val documentType: String = "teddy_bear_record",
-    val documentVersion: Int = 1
 )
 
 enum class RecipientType {

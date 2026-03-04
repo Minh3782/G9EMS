@@ -19,7 +19,7 @@ class FormViewModel(
     private val llm: LlmClient = LlmClient()
 ) : ViewModel() {
 
-    private val _session = MutableStateFlow(repo.createBlankSession(FormType.FORM3_PATIENT_REPORT))
+    private val _session = MutableStateFlow(repo.createBlankSession(FormType.FORM2_TEDDY))
     val session: StateFlow<FormSession> = _session
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(
@@ -45,41 +45,18 @@ class FormViewModel(
     fun onFinalTranscript(text: String) {
         if (text.isBlank()) return
 
-        // LOG 1: The raw transcript
-        Log.d("EMS-VOICE", "🎤 FINAL TRANSCRIPT: $text")
-
-        _messages.value = _messages.value + ChatMessage(role = Role.USER, text = text)
+        _messages.value = _messages.value +
+                ChatMessage(role = Role.USER, text = text)
 
         viewModelScope.launch {
             val suggestion = llm.suggestFieldUpdates(text, _session.value)
 
-            // LOG 2: The AI suggestion fieldUpdates
-            Log.d("EMS-AI", "🤖 AI SUGGESTION fieldUpdates: ${suggestion.fieldUpdates}")
-            Log.d("EMS-AI", "🤖 AI REPLY: ${suggestion.assistantReply}")
-
-            // LOG before update
-            Log.d("EMS-SESSION", "📋 SESSION BEFORE: ${_session.value.fields}")
-
-            // Apply field updates
             _session.value = FormUpdateEngine.applyUpdates(
                 session = _session.value,
                 updates = suggestion.fieldUpdates
             )
 
-            // LOG after update
-            Log.d("EMS-SESSION", "📋 SESSION AFTER: ${_session.value.fields}")
-
-            val debugText = suggestion.assistantReply +
-                    "\n\nExtracted:\n" +
-                    suggestion.fieldUpdates.toString()
-
-            _messages.value = _messages.value +
-                    ChatMessage(role = Role.ASSISTANT, text = debugText)
-
             repo.saveSession(_session.value)
-
-            // LOG confirmation
-            Log.d("EMS-VOICE", "✅ Voice processing complete - Fields updated and saved")
         }
     }
 
@@ -102,5 +79,24 @@ class FormViewModel(
     fun setFormType(type: FormType) {
         _session.value = repo.createBlankSession(type)
         _messages.value = listOf(ChatMessage(role = Role.SYSTEM, text = "Switched to $type. Push-to-talk to begin."))
+    }
+
+    fun setFieldValue(key: String, value: String) {
+        val updatedFields = _session.value.fields.map { field ->
+            if (field.key == key) field.copy(value = value) else field
+        }
+        _session.value = _session.value.copy(fields = updatedFields)
+    }
+
+    fun clearForm() {
+        _session.value = repo.createBlankSession(_session.value.formType)
+        _messages.value = listOf(ChatMessage(role = Role.SYSTEM, text = "Form cleared. Push-to-talk to begin."))
+    }
+
+    fun submitForm() {
+        viewModelScope.launch {
+            repo.saveSession(_session.value)
+            // Add any submission logic here (e.g. POST to server)
+        }
     }
 }

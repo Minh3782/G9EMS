@@ -1,4 +1,8 @@
 package com.example.g9ems.domain
 
-class PatientReport {
-}
+data class PatientReport(
+    val id: String = "",
+    val patientName: String = "",
+    val chiefComplaint: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
